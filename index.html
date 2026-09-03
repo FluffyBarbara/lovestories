@@ -276,7 +276,7 @@
             <h2 style="color: #fff; font-size: 22px; margin-bottom: 8px; font-weight: 800;">Защищенный доступ</h2>
             <p style="color: var(--text-400); font-size: 13px; margin-bottom: 25px;">Введите пароль для просмотра и изменения данных</p>
             <input type="password" id="app-password" class="input-field" placeholder="Пароль" style="margin-bottom: 20px; text-align: center; letter-spacing: 2px;">
-            <button class="btn btn-gradient" onclick="checkPasswordSimple()" style="width: 100%;">Разблокировать</button>
+            <button class="btn btn-gradient" onclick="checkPassword()" style="width: 100%;">Разблокировать</button>
         </div>
     </div>
 
@@ -453,45 +453,21 @@
     </div>
 
     <script>
-        const CORRECT_PASSWORD_HASH = "8f303ad5041ff631eb09d3bdfd88f6b0f9468e83be62283e58b193318ca53e5e";
+        const ENC_KEY = "lovestoriesnika";
 
-        async function hashString(string) {
-            const utf8 = new TextEncoder().encode(string);
-            const hashBuffer = await crypto.subtle.digest('SHA-256', utf8);
-            const hashArray = Array.from(new Uint8Array(hashBuffer));
-            return hashArray.map((b) => b.toString(16).padStart(2, '0')).join('');
-        }
-
-        async function checkPasswordSimple() {
+        function checkPassword() {
             const input = document.getElementById('app-password').value;
-            try {
-                const inputHash = await hashString(input);
-                if (inputHash === CORRECT_PASSWORD_HASH) {
-                    unlockApp();
-                } else {
-                    wrongPassword();
+            if (input === ENC_KEY) {
+                const overlay = document.getElementById('auth-overlay');
+                if(overlay) {
+                    overlay.style.opacity = '0';
+                    setTimeout(() => overlay.remove(), 500);
                 }
-            } catch (err) {
-                if (input === "lovestoriesnika") {
-                    unlockApp();
-                } else {
-                    wrongPassword();
-                }
+                localStorage.setItem('isUnlocked', 'true');
+            } else {
+                Utils.showToast('Неверный пароль!', 'error');
+                document.getElementById('app-password').value = '';
             }
-        }
-
-        function unlockApp() {
-            const overlay = document.getElementById('auth-overlay');
-            if(overlay) {
-                overlay.style.opacity = '0';
-                setTimeout(() => overlay.remove(), 500);
-            }
-            localStorage.setItem('isUnlocked', 'true');
-        }
-
-        function wrongPassword() {
-            Utils.showToast('Неверный пароль!', 'error');
-            document.getElementById('app-password').value = '';
         }
 
         window.addEventListener('DOMContentLoaded', () => {
@@ -505,7 +481,7 @@
             const pwdInput = document.getElementById('app-password');
             if(pwdInput) {
                 pwdInput.addEventListener('keypress', (e) => {
-                    if (e.key === 'Enter') checkPasswordSimple();
+                    if (e.key === 'Enter') checkPassword();
                 });
             }
         });

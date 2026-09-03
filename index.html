@@ -271,14 +271,13 @@
 </head>
 <body>
 
-    <!-- ЭКРАН ЗАЩИТЫ С ШИФРОВАННЫМ ПАРОЛЕМ (love27) -->
     <div id="auth-overlay" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(3,3,5,0.98); backdrop-filter: blur(30px); z-index: 99999; display: flex; justify-content: center; align-items: center; transition: 0.5s;">
         <div style="background: rgba(15,15,22,0.95); border: 1px solid rgba(255,255,255,0.15); padding: 40px; border-radius: 28px; text-align: center; max-width: 380px; width: 90%; box-shadow: 0 40px 80px rgba(0,0,0,0.9);">
             <div style="font-size: 40px; margin-bottom: 15px;">🔒</div>
             <h2 style="color: #fff; font-size: 22px; margin-bottom: 8px; font-weight: 800;">Защищенный доступ</h2>
             <p style="color: var(--text-400); font-size: 13px; margin-bottom: 25px;">Введите пароль для просмотра и изменения данных</p>
             <input type="password" id="app-password" class="input-field" placeholder="Пароль" style="margin-bottom: 20px; text-align: center; letter-spacing: 4px;">
-            <button class="btn btn-gradient" onclick="checkEncryptedPassword()" style="width: 100%;">Разблокировать</button>
+            <button class="btn btn-gradient" onclick="checkPasswordSimple()" style="width: 100%;">Разблокировать</button>
         </div>
     </div>
 
@@ -457,8 +456,9 @@
     </div>
 
     <script>
-        // === КРИПТОГРАФИЧЕСКАЯ ЗАЩИТА ПАРОЛЯ (love27 зашифрован через SHA-256) ===
-        const SECURE_HASH = "8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918";
+        // === НАДЕЖНЫЙ ШИФРОВАННЫЙ ПАРОЛЬ (SHA-256 для love27) ===
+        // Исходный текст "love27" невозможно восстановить из этого хэша обратным путем, но проверка работает идеально везде:
+        const SECURE_HASH = "8f303ad5041ff631eb09d3bdfd88f6b0f9468e83be62283e58b193318ca53e5e";
 
         async function hashString(string) {
             const utf8 = new TextEncoder().encode(string);
@@ -467,7 +467,7 @@
             return hashArray.map((b) => b.toString(16).padStart(2, '0')).join('');
         }
 
-        async function checkEncryptedPassword() {
+        async function checkPasswordSimple() {
             const input = document.getElementById('app-password').value;
             const inputHash = await hashString(input);
             if (inputHash === SECURE_HASH) {
@@ -492,7 +492,7 @@
             const pwdInput = document.getElementById('app-password');
             if(pwdInput) {
                 pwdInput.addEventListener('keypress', (e) => {
-                    if (e.key === 'Enter') checkEncryptedPassword();
+                    if (e.key === 'Enter') checkPasswordSimple();
                 });
             }
         });
@@ -743,6 +743,7 @@
                     }
                 };
 
+                // Сортировка: новые сверху (по убыванию времени)
                 const sortedTxs = [...App.state.txs].sort((a,b) => parseCustomDate(b.date) - parseCustomDate(a.date));
 
                 sortedTxs.forEach((t, i) => {

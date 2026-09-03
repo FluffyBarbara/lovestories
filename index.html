@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Трекер: Поездка к любимой</title>
     
-    <!-- Зависимости -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -276,7 +275,7 @@
             <div style="font-size: 40px; margin-bottom: 15px;">🔒</div>
             <h2 style="color: #fff; font-size: 22px; margin-bottom: 8px; font-weight: 800;">Защищенный доступ</h2>
             <p style="color: var(--text-400); font-size: 13px; margin-bottom: 25px;">Введите пароль для просмотра и изменения данных</p>
-            <input type="password" id="app-password" class="input-field" placeholder="Пароль" style="margin-bottom: 20px; text-align: center; letter-spacing: 4px;">
+            <input type="password" id="app-password" class="input-field" placeholder="Пароль" style="margin-bottom: 20px; text-align: center; letter-spacing: 2px;">
             <button class="btn btn-gradient" onclick="checkPasswordSimple()" style="width: 100%;">Разблокировать</button>
         </div>
     </div>
@@ -373,14 +372,12 @@
                 </div>
                 
                 <ul class="transaction-list" id="tx-list">
-                    <!-- Список транзакций -->
                 </ul>
             </div>
         </div>
 
     </div>
 
-    <!-- Модалки -->
     <div class="modal-overlay" id="addModal">
         <div class="modal-box">
             <div class="modal-header">
@@ -456,9 +453,7 @@
     </div>
 
     <script>
-        // === НАДЕЖНЫЙ ШИФРОВАННЫЙ ПАРОЛЬ (SHA-256 для love27) ===
-        // Исходный текст "love27" невозможно восстановить из этого хэша обратным путем, но проверка работает идеально везде:
-        const SECURE_HASH = "8f303ad5041ff631eb09d3bdfd88f6b0f9468e83be62283e58b193318ca53e5e";
+        const CORRECT_PASSWORD_HASH = "8f303ad5041ff631eb09d3bdfd88f6b0f9468e83be62283e58b193318ca53e5e";
 
         async function hashString(string) {
             const utf8 = new TextEncoder().encode(string);
@@ -469,16 +464,34 @@
 
         async function checkPasswordSimple() {
             const input = document.getElementById('app-password').value;
-            const inputHash = await hashString(input);
-            if (inputHash === SECURE_HASH) {
-                const overlay = document.getElementById('auth-overlay');
+            try {
+                const inputHash = await hashString(input);
+                if (inputHash === CORRECT_PASSWORD_HASH) {
+                    unlockApp();
+                } else {
+                    wrongPassword();
+                }
+            } catch (err) {
+                if (input === "lovestoriesnika") {
+                    unlockApp();
+                } else {
+                    wrongPassword();
+                }
+            }
+        }
+
+        function unlockApp() {
+            const overlay = document.getElementById('auth-overlay');
+            if(overlay) {
                 overlay.style.opacity = '0';
                 setTimeout(() => overlay.remove(), 500);
-                localStorage.setItem('isUnlocked', 'true');
-            } else {
-                Utils.showToast('Неверный пароль!', 'error');
-                document.getElementById('app-password').value = '';
             }
+            localStorage.setItem('isUnlocked', 'true');
+        }
+
+        function wrongPassword() {
+            Utils.showToast('Неверный пароль!', 'error');
+            document.getElementById('app-password').value = '';
         }
 
         window.addEventListener('DOMContentLoaded', () => {
@@ -743,7 +756,6 @@
                     }
                 };
 
-                // Сортировка: новые сверху (по убыванию времени)
                 const sortedTxs = [...App.state.txs].sort((a,b) => parseCustomDate(b.date) - parseCustomDate(a.date));
 
                 sortedTxs.forEach((t, i) => {
